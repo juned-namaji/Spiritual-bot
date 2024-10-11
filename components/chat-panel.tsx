@@ -14,7 +14,6 @@ import { UserMessage } from './stocks/message'
 
 export interface ChatPanelProps {
   id?: string
-  title?: string
   input: string
   setInput: (value: string) => void
   isAtBottom: boolean
@@ -23,7 +22,6 @@ export interface ChatPanelProps {
 
 export function ChatPanel({
   id,
-  title,
   input,
   setInput,
   isAtBottom,
@@ -33,30 +31,30 @@ export function ChatPanel({
   const [messages, setMessages] = useUIState<typeof AI>()
   const { submitUserMessage } = useActions()
   const [shareDialogOpen, setShareDialogOpen] = React.useState(false)
+  const [title, setTitle] = React.useState("");
 
   const exampleMessages = [
     {
+      heading: 'What is the',
+      subheading: 'purpose of life according to the Bhagavad Gita?',
+      message: `What is the purpose of life according to the Bhagavad Gita?`
+    },
+    {
+      heading: 'How can I',
+      subheading: 'attain inner peace?',
+      message: 'How can I attain inner peace?'
+    },
+    {
       heading: 'What are the',
-      subheading: 'trending memecoins today?',
-      message: `What are the trending memecoins today?`
+      subheading: 'teachings of Lord Krishna on karma?',
+      message: `What are the teachings of Lord Krishna on karma?`
     },
     {
-      heading: 'What is the price of',
-      subheading: '$DOGE right now?',
-      message: 'What is the price of $DOGE right now?'
-    },
-    {
-      heading: 'I would like to buy',
-      subheading: '42 $DOGE',
-      message: `I would like to buy 42 $DOGE`
-    },
-    {
-      heading: 'What are some',
-      subheading: `recent events about $DOGE?`,
-      message: `What are some recent events about $DOGE?`
-    }
+      heading: 'Can you explain',
+      subheading: 'the concept of dharma?',
+      message: `Can you explain the concept of dharma?`
+    } 
   ]
-
   return (
     <div className="fixed inset-x-0 bottom-0 w-full bg-gradient-to-b from-muted/30 from-0% to-muted/30 to-50% duration-300 ease-in-out animate-in dark:from-background/10 dark:from-10% dark:to-background/80 peer-[[data-state=open]]:group-[]:lg:pl-[250px] peer-[[data-state=open]]:group-[]:xl:pl-[300px]">
       <ButtonScrollToBottom
@@ -74,6 +72,7 @@ export function ChatPanel({
                   index > 1 && 'hidden md:block'
                 }`}
                 onClick={async () => {
+                  setTitle(example.message);
                   setMessages(currentMessages => [
                     ...currentMessages,
                     {
@@ -103,7 +102,7 @@ export function ChatPanel({
         {messages?.length >= 2 ? (
           <div className="flex h-12 items-center justify-center">
             <div className="flex space-x-2">
-              {id && title ? (
+              {id && title ?(
                 <>
                   <Button
                     variant="outline"

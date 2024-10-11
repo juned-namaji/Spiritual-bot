@@ -2,6 +2,7 @@
 
 import * as React from 'react'
 import Textarea from 'react-textarea-autosize'
+import { submitUserMessage } from '@/lib/chat/actions'
 import { useActions, useUIState } from 'ai/rsc'
 import { UserMessage } from './stocks/message'
 import { type AI } from '@/lib/chat/actions'
@@ -25,7 +26,6 @@ export function PromptForm({
   const router = useRouter()
   const { formRef, onKeyDown } = useEnterSubmit()
   const inputRef = React.useRef<HTMLTextAreaElement>(null)
-  const { submitUserMessage } = useActions()
   const [_, setMessages] = useUIState<typeof AI>()
   const { data: session } = useSession()
   const [prompts, setPrompts] = React.useState<number>(0)
@@ -53,10 +53,12 @@ export function PromptForm({
 
   const handleSubmit = async (e: any) => {
     e.preventDefault()
+    //checking if the user is logged in or not
     if (!session?.user?.email) {
       const attempts = await getNoOfAttempts()
       if (attempts >= 3) {
         router.push('/login')
+        return;
       } else {
         await setCookie()
         setPrompts(attempts + 1)
@@ -66,6 +68,7 @@ export function PromptForm({
 
     const value = input.trim()
     setInput('')
+    console.log(input)
     if (!value) return
 
     setMessages(currentMessages => [
@@ -75,6 +78,9 @@ export function PromptForm({
         display: <UserMessage>{value}</UserMessage>
       }
     ])
+    // Submit and get response message
+    const responseMessage = await submitUserMessage(value);
+    setMessages(currentMessages => [...currentMessages, responseMessage])
   }
 
   return (
@@ -108,7 +114,7 @@ export function PromptForm({
             autoFocus
             spellCheck={false}
             autoComplete="off"
-            autoCorrect="off"
+            autoCorrect="on"
             name="message"
             rows={1}
             value={input}
