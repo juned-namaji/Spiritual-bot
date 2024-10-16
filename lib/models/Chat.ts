@@ -1,16 +1,18 @@
 import mongoose, { Document, Schema, model } from 'mongoose';
 
 export interface IChat extends Document {
-    userId: Schema.Types.ObjectId; 
+    userEmail: string;
+    roomId: string;  
     messages: {
-        request: string;     
-        response: string;    
-        timestamp: Date;     
+        request: string;
+        response: string;
+        timestamp: Date;
     }[];
 }
 
 const chatSchema = new Schema<IChat>({
-    userId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+    userEmail: { type: String, ref: 'User', required: true },  
+    roomId: { type: String, required: true },
     messages: [
         {
             request: { type: String, required: true },
@@ -19,6 +21,8 @@ const chatSchema = new Schema<IChat>({
         },
     ],
 });
+chatSchema.index({ userEmail: 1, roomId: 1 }, { unique: true });
+
 const ChatModel = mongoose.models.Chat || mongoose.model<IChat>('Chat', chatSchema);
 
 export default ChatModel;

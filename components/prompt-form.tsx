@@ -2,10 +2,10 @@
 
 import * as React from 'react'
 import Textarea from 'react-textarea-autosize'
-import { submitUserMessage } from '@/lib/chat/actions'
+import { submitUserMessage } from '@/lib/chat/serverActions'
 import { useActions, useUIState } from 'ai/rsc'
 import { UserMessage } from './stocks/message'
-import { type AI } from '@/lib/chat/actions'
+import { type AI } from '@/lib/chat/serverActions'
 import { Button } from '@/components/ui/button'
 import { IconArrowElbow, IconPlus } from '@/components/ui/icons'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
@@ -17,9 +17,11 @@ import { getNoOfAttempts, setCookie } from '@/app/actions/serverActions'
 import AttemptsModal from './attempts-modal'
 
 export function PromptForm({
+  roomId,
   input,
   setInput
 }: {
+  roomId: string
   input: string
   setInput: (value: string) => void
 }) {
@@ -53,16 +55,16 @@ export function PromptForm({
 
   const handleSubmit = async (e: any) => {
     e.preventDefault()
-    //checking if the user is logged in or not
+    // Check if the user is logged in
     if (!session?.user?.email) {
       const attempts = await getNoOfAttempts()
       if (attempts >= 3) {
         router.push('/login')
-        return;
+        return
       } else {
         await setCookie()
         setPrompts(attempts + 1)
-        setShowModal(true) 
+        setShowModal(true)
       }
     }
 
@@ -71,21 +73,54 @@ export function PromptForm({
     console.log(input)
     if (!value) return
 
-    setMessages(currentMessages => [
+    setMessages((currentMessages) => [
       ...currentMessages,
       {
         id: nanoid(),
+        key: new Date().toISOString(),
         display: <UserMessage>{value}</UserMessage>
       }
     ])
+
     // Submit and get response message
-    const responseMessage = await submitUserMessage(value);
-    setMessages(currentMessages => [...currentMessages, responseMessage])
+    const responseMessage = await submitUserMessage(value)
+    try {
+      const response = await fetch('http://localhost:3000/api/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          email: session?.user?.email,
+          roomId: roomId,
+          request: value,
+          response: responseMessage.response
+        })
+      })
+
+      if (response.ok) {
+        console.log('Chat saved successfully.')
+      } else {
+        console.error('Failed to save the chat.')
+      }
+    } catch (error) {
+      console.error('Error while saving chat:', error)
+    }
+
+    setMessages((currentMessages) => [
+      ...currentMessages,
+      responseMessage
+    ])
   }
 
   return (
     <>
-      {showModal && <AttemptsModal attempts={prompts} onClose={() => setShowModal(false)} />}
+      {showModal && (
+        <AttemptsModal
+          attempts={prompts}
+          onClose={() => setShowModal(false)}
+        />
+      )}
 
       <form ref={formRef} onSubmit={handleSubmit}>
         <div className="relative flex max-h-60 w-full grow flex-col overflow-hidden bg-background px-8 sm:rounded-md sm:border sm:px-12">
@@ -109,7 +144,9 @@ export function PromptForm({
             ref={inputRef}
             tabIndex={0}
             onKeyDown={onKeyDown}
-            placeholder={!session?.user && prompts === 3 ? 'Login to use' : 'Send a message.'}
+            placeholder={
+              !session?.user && prompts === 3 ? 'Login to use' : 'Send a message.'
+            }
             className="min-h-[60px] w-full resize-none bg-transparent px-4 py-[1.3rem] focus-within:outline-none sm:text-sm"
             autoFocus
             spellCheck={false}
@@ -119,7 +156,7 @@ export function PromptForm({
             rows={1}
             value={input}
             onClick={handleTextAreaClick}
-            onChange={e => setInput(e.target.value)}
+            onChange={(e) => setInput(e.target.value)}
           />
           <div className="absolute right-0 top-[13px] sm:right-4">
             <Tooltip>

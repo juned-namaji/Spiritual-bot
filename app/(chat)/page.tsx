@@ -1,7 +1,7 @@
 import React from 'react';
 import { nanoid } from '@/lib/utils';
 import { Chat } from '@/components/chat';
-import { AI } from '@/lib/chat/actions';
+import { AI } from '@/lib/chat/serverActions';
 import { auth } from '@/auth';
 import { Session } from '@/lib/types';
 import { getMissingKeys } from '@/app/actions';
@@ -10,12 +10,20 @@ import { redirect } from 'next/navigation';
 import SecurityPolicy from '@/components/ui/Security-modal';
 
 export default async function IndexPage() {
-  const id = nanoid();
+  let id = typeof window !== 'undefined' ? localStorage.getItem('chatId') : null;
+
+  if (!id) {
+    id = nanoid();
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('chatId', id);
+    }
+  }
+
   const session = (await auth()) as Session;
   const missingKeys = await getMissingKeys();
   const attempts = await getNoOfAttempts();
 
-  if (!session?.user?.email && attempts >3) {
+  if (!session?.user?.email && attempts > 3) {
     redirect('/login');
   }
 

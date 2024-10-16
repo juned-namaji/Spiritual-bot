@@ -30,18 +30,21 @@ export function Chat({ id, className, session, missingKeys }: ChatProps) {
 
   useEffect(() => {
     if (session?.user) {
+      console.log(messages);
       if (!path.includes('chat') && messages.length === 1) {
         window.history.replaceState({}, '', `/chat/${id}`)
       }
     }
   }, [id, path, session?.user, messages])
 
-  useEffect(() => {
-    const messagesLength = aiState.messages?.length
-    if (messagesLength === 2) {
-      router.refresh()
-    }
-  }, [aiState.messages, router])
+  // useEffect(() => {
+  //   console.log(aiState.messages);
+  //   const messagesLength = aiState.messages?.length
+  //   // console.log(messagesLength);
+  //   // if (messagesLength === 2) {
+  //   //   router.refresh()
+  //   // }
+  // }, [aiState.messages, router])
 
   useEffect(() => {
     setNewChatId(id)
@@ -53,8 +56,7 @@ export function Chat({ id, className, session, missingKeys }: ChatProps) {
     })
   }, [missingKeys])
 
-  const { messagesRef, scrollRef, visibilityRef, isAtBottom, scrollToBottom } =
-    useScrollAnchor()
+  const { messagesRef, scrollRef, visibilityRef, isAtBottom, scrollToBottom } = useScrollAnchor();
 
   return (
     <div

@@ -38,22 +38,28 @@ export async function getChats(userId?: string | null) {
   }
 }
 
-export async function getChat(id: string, userId: string) {
-  const session = await auth()
+export async function getChat(roomId: string, userEmail: string) {
+  if(!roomId || !userEmail) {
+    return {error: `${roomId ? "userEmail": "roomId"} not found!!`}
+  }
+  try {
+    const res = await fetch(`http://localhost:3000/api/chat?email=${userEmail}&roomId=${roomId}`);
 
-  if (userId !== session?.user?.id) {
-    return {
-      error: 'Unauthorized'
+    if (!res.ok) {
+      return {messages: "No chats yet in this room"};
     }
+
+    const data = await res.json();
+
+    if (!data.messages) {
+      return null;
+    }
+
+    return data; 
+  } catch (error) {
+    console.error('Error fetching chat data:', error);
+    return { error: 'Error fetching chat data' };
   }
-
-  const chat = await kv.hgetall<Chat>(`chat:${id}`)
-
-  if (!chat || (userId && chat.userId !== userId)) {
-    return null
-  }
-
-  return chat
 }
 
 export async function removeChat({ id, path }: { id: string; path: string }) {

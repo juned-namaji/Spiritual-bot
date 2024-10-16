@@ -7,29 +7,32 @@ export async function POST(req: NextRequest) {
     try {
         await dbConnect();
         const body = await req.json();
-        const { email, request, response } = body;
-
-        if (!email || !request || !response) {
-            return NextResponse.json({ message: 'Email, request, and response are required.' }, { status: 400 });
+        const { email, roomId, request, response } = body;
+        if (!email || !roomId || !request || !response) {
+            return NextResponse.json(
+                { message: 'Email, roomId, request, and response are required.' },
+                { status: 400 }
+            );
         }
         const user = await UserModel.findOne({ email });
 
         if (!user) {
             return NextResponse.json({ message: 'User not found.' }, { status: 404 });
         }
-
-        const chat = await ChatModel.findOne({ userId: user._id });
+        let chat = await ChatModel.findOne({ userEmail: email, roomId: roomId });
 
         if (chat) {
             chat.messages.push({ request, response, timestamp: new Date() });
             await chat.save();
         } else {
-            const newChat = new ChatModel({
-                userId: user._id,
+            chat = new ChatModel({
+                userEmail: email,
+                roomId: roomId,
                 messages: [{ request, response, timestamp: new Date() }],
             });
-            await newChat.save();
+            await chat.save();
         }
+
         return NextResponse.json({ message: 'Chat saved successfully.' }, { status: 201 });
     } catch (error) {
         console.error(error);
@@ -37,14 +40,19 @@ export async function POST(req: NextRequest) {
     }
 }
 
+
 export async function GET(req: NextRequest) {
     try {
         await dbConnect();
         const { searchParams } = new URL(req.url);
         const email = searchParams.get('email');
+        const roomId = searchParams.get('roomId');
 
-        if (!email) {
-            return NextResponse.json({ message: 'Email is required.' }, { status: 400 });
+        if (!email || !roomId) {
+            return NextResponse.json(
+                { message: 'Email and roomId are required.' },
+                { status: 400 }
+            );
         }
 
         const user = await UserModel.findOne({ email });
@@ -52,16 +60,19 @@ export async function GET(req: NextRequest) {
         if (!user) {
             return NextResponse.json({ message: 'User not found.' }, { status: 404 });
         }
-
-        const chat = await ChatModel.findOne({ userId: user._id });
+        const chat = await ChatModel.findOne({ userEmail: email, roomId: roomId });
 
         if (!chat) {
-            return NextResponse.json({ message: 'No chat history found for this user.' }, { status: 404 });
+            return NextResponse.json({ message: 'No chat history found for this user and room.' }, {status: 200});
         }
-
-        return NextResponse.json({ messages: chat.messages }, { status: 200 });
+        return NextResponse.json({ 
+            id: roomId,   
+            userId: email,
+            messages: chat.messages 
+        }, { status: 200 });
     } catch (error) {
         console.error(error);
         return NextResponse.json({ message: 'Internal server error.' }, { status: 500 });
     }
 }
+
