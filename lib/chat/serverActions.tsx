@@ -96,7 +96,7 @@ import { getUIStateFromAIState } from './actions';
 
 export const submitUserMessage = async (message: string) => {
   try {
-    const res = await fetch(`https://spiritual-bot-llm-2ag9-b3zo7aqv8-juned-namajis-projects.vercel.app/query/${message}`, {
+    const res = await fetch(`https://paragon-m3ntisui0-utkarshs-projects-f544751f.vercel.app/query/${message}`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -160,10 +160,8 @@ export const AI = createAI<AIState, UIState>({
   },
   onSetAIState: async ({ state }) => {
     const session = await auth()
-    console.log("State: ", state);
 
     if (session && session?.user) {
-      console.log("State: ", state);
       const { chatId, messages } = state
 
       const createdAt = new Date()

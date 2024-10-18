@@ -1,5 +1,3 @@
-'use client'
-
 import * as React from 'react'
 import Textarea from 'react-textarea-autosize'
 import { submitUserMessage } from '@/lib/chat/serverActions'

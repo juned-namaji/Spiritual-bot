@@ -12,6 +12,7 @@ interface ChatHistoryProps {
 }
 
 export async function ChatHistory({ userId }: ChatHistoryProps) {
+  // console.log("iN THE CHat history", userId);
   return (
     <div className="flex flex-col h-full">
       <div className="flex items-center justify-between p-4">
@@ -41,7 +42,6 @@ export async function ChatHistory({ userId }: ChatHistoryProps) {
           </div>
         }
       >
-        {/* @ts-ignore */}
         <SidebarList userId={userId} />
       </React.Suspense>
     </div>

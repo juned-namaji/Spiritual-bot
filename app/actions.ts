@@ -13,27 +13,29 @@ export async function getChats(userId?: string | null) {
   if (!userId) {
     return []
   }
-
-  if (userId !== session?.user?.id) {
+  if (userId !== session?.user?.email) {
     return {
       error: 'Unauthorized'
     }
   }
 
   try {
-    const pipeline = kv.pipeline()
-    const chats: string[] = await kv.zrange(`user:chat:${userId}`, 0, -1, {
-      rev: true
+    const response = await fetch(`http://localhost:3000/api/allChats?email=${userId}`, {
+      method: 'GET',
     })
 
-    for (const chat of chats) {
-      pipeline.hgetall(chat)
+    if (!response.ok) {
+      throw new Error('Failed to fetch chats')
     }
 
-    const results = await pipeline.exec()
+    const data = await response.json()
+    if (!data.chats) {
+      return []
+    }
 
-    return results as Chat[]
+    return data.chats
   } catch (error) {
+    console.error(error)
     return []
   }
 }

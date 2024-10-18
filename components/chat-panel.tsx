@@ -32,6 +32,7 @@ export function ChatPanel({
   const [shareDialogOpen, setShareDialogOpen] = React.useState(false)
   const [title, setTitle] = React.useState("")
 
+  console.log("Id ", id, "Messages: ", messages, "\nLength: ", messages.length);
   const exampleMessages = [
     {
       heading: 'What is the',
@@ -101,7 +102,7 @@ export function ChatPanel({
         {messages?.length >= 2 ? (
           <div className="flex h-12 items-center justify-center">
             <div className="flex space-x-2">
-              {id && title ? (
+              {id && messages[0].key ? (
                 <>
                   <Button
                     variant="outline"

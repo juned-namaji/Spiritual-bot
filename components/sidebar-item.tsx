@@ -19,19 +19,18 @@ import { type Chat } from '@/lib/types'
 import { cn } from '@/lib/utils'
 
 interface SidebarItemProps {
-  index: number
-  chat: Chat
+  chat: Chat 
   children: React.ReactNode
 }
 
-export function SidebarItem({ index, chat, children }: SidebarItemProps) {
+export function SidebarItem({ chat, children }: SidebarItemProps) {
   const pathname = usePathname()
 
-  const isActive = pathname === chat.path
+  const isActive = pathname === `/chat/${chat.id}`
   const [newChatId, setNewChatId] = useLocalStorage('newChatId', null)
-  const shouldAnimate = index === 0 && isActive && newChatId
+  const shouldAnimate = isActive && newChatId
 
-  if (!chat?.id) return null
+  if (!chat?._id) return null
 
   return (
     <motion.div
@@ -69,7 +68,7 @@ export function SidebarItem({ index, chat, children }: SidebarItemProps) {
         )}
       </div>
       <Link
-        href={chat.path}
+        href={`/chat/${chat.roomId}`} 
         className={cn(
           buttonVariants({ variant: 'ghost' }),
           'group w-full px-8 transition-colors hover:bg-zinc-200/40 dark:hover:bg-zinc-300/10',

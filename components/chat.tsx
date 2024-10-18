@@ -32,6 +32,7 @@ export function Chat({ id, className, session, missingKeys }: ChatProps) {
     if (session?.user) {
       console.log(messages);
       if (!path.includes('chat') && messages.length === 1) {
+        console.log("Here we go")
         window.history.replaceState({}, '', `/chat/${id}`)
       }
     }

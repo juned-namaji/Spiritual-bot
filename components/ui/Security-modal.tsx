@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-
 const ConsentModal = () => {
   const [isModalOpen, setIsModalOpen] = useState(true);
   const [isChecked, setIsChecked] = useState(false);
