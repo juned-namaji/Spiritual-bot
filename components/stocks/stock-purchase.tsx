@@ -4,7 +4,7 @@ import { useId, useState } from 'react'
 import { useActions, useAIState, useUIState } from 'ai/rsc'
 import { formatNumber } from '@/lib/utils'
 
-import type { AI } from '@/lib/chat/actions'
+import { AI } from '@/lib/chat/serverActions'
 
 interface Purchase {
   numberOfShares?: number
@@ -29,35 +29,46 @@ export function Purchase({
 
   // Whenever the slider changes, we need to update the local value state and the history
   // so LLM also knows what's going on.
-  function onSliderChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const newValue = Number(e.target.value)
-    setValue(newValue)
 
-    // Insert a hidden history info to the list.
-    const message = {
-      role: 'system' as const,
-      content: `[User has changed to purchase ${newValue} shares of ${name}. Total cost: $${(
-        newValue * price
-      ).toFixed(2)}]`,
+interface Message {
+  _id: string;
+  role: 'user' | 'system';
+  content: string;
+  request: string;
+  response: string;
+  timestamp: string;
+}
 
-      // Identifier of this UI component, so we don't insert it many times.
-      id
-    }
+function onSliderChange(e: React.ChangeEvent<HTMLInputElement>) {
+  const newValue = Number(e.target.value);
+  setValue(newValue);
 
-    // If last history state is already this info, update it. This is to avoid
-    // adding every slider change to the history.
-    if (aiState.messages[aiState.messages.length - 1]?.id === id) {
-      setAIState({
-        ...aiState,
-        messages: [...aiState.messages.slice(0, -1), message]
-      })
+  // Create a complete message object
+  const message: Message = {
+    _id: 'trash', // Generate a unique ID
+    role: 'system',
+    content: `[User has changed to purchase ${newValue} shares of ${name}. Total cost: $${(newValue * price).toFixed(2)}]`,
+    request: '', // Populate as needed
+    response: '', // Populate as needed
+    timestamp: new Date().toISOString(), // Current timestamp
+  };
 
-      return
-    }
-
-    // If it doesn't exist, append it to history.
-    setAIState({ ...aiState, messages: [...aiState.messages, message] })
+  // Check if the last message has the same ID to avoid duplication
+  if (aiState.messages[aiState.messages.length - 1]?._id === message._id) {
+    setAIState({
+      ...aiState,
+      messages: [...aiState.messages.slice(0, -1), message],
+    });
+    return;
   }
+
+  // Append the new message to the history
+  setAIState({
+    ...aiState,
+    messages: [...aiState.messages, message],
+  });
+}
+
 
   return (
     <div className="p-4 text-green-400 border rounded-xl bg-zinc-950">
